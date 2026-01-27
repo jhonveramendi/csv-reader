@@ -1,5 +1,5 @@
 <template>
-	<div>
+	<div @click="hideContextMenu">
 		<section id="container-tools">
 			<input type="file" @change="getCsv" />
 			<button @click="downloadCsv(dataCsv)">Descargar</button>
@@ -9,10 +9,37 @@
       {{ maxColumn }}
 		</section>
 		<div style="width: 100%; height: 800px; overflow: scroll">
+			<!-- Context Menu -->
+			<div v-if="contextMenu.visible" :style="{
+				position: 'fixed',
+				top: contextMenu.y + 'px',
+				left: contextMenu.x + 'px',
+				backgroundColor: '#fff',
+				border: '1px solid #ccc',
+				borderRadius: '4px',
+				boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+				zIndex: 1000,
+				minWidth: '150px'
+			}">
+				<div v-if="contextMenu.type === 'column'" @click="deleteColumn(contextMenu.index)" style="
+					padding: '8px 12px',
+					cursor: 'pointer'
+				" onmouseover="this.style.backgroundColor='#f0f0f0'" onmouseout="this.style.backgroundColor='#fff'">
+					Eliminar Columna
+				</div>
+				<div v-if="contextMenu.type === 'row'" @click="deleteRow(contextMenu.index)" style="
+					padding: '8px 12px',
+					cursor: 'pointer'
+				" onmouseover="this.style.backgroundColor='#f0f0f0'" onmouseout="this.style.backgroundColor='#fff'">
+					Eliminar Fila
+				</div>
+			</div>
 			<table>
 				<tr>
 					<td></td>
 					<td
+						name="column-reference"
+						@contextmenu.prevent="showContextMenu($event, 'column', index)"
 						:style="
 							index === active.col
 								? ' background-color: gray;  '
@@ -29,6 +56,8 @@
 				</tr>
 				<tr v-for="(dataRow, i) in dataCsv" :key="i">
 					<td
+						name="row-reference"
+						@contextmenu.prevent="showContextMenu($event, 'row', i)"
 						:style="
 							i === active.row ? ' background-color: gray;' : '  background-color: #ccc; '
 						"
@@ -52,6 +81,13 @@
 			const width = ref(175);
 			const heigth = ref(50);
 			const active = ref({});
+			const contextMenu = ref({
+				visible: false,
+				x: 0,
+				y: 0,
+				type: null,
+				index: null
+			});
 
 			const data = ref('');
 			const getCsv = function (e) {
@@ -170,6 +206,39 @@
 					this.data = JSON.parse(lastCsvData);
 				}
 			};
+
+			const showContextMenu = (event, type, index) => {
+				contextMenu.value = {
+					visible: true,
+					x: event.clientX,
+					y: event.clientY,
+					type: type,
+					index: index
+				};
+			};
+
+			const hideContextMenu = () => {
+				contextMenu.value.visible = false;
+			};
+
+			const deleteColumn = (colIndex) => {
+				const newCsv = csvToArray(data.value);
+				newCsv.forEach((row) => {
+					row.splice(colIndex, 1);
+				});
+				const csvString = newCsv.map(row => row.join(',')).join('\n');
+				data.value = csvString;
+				hideContextMenu();
+			};
+
+			const deleteRow = (rowIndex) => {
+				const newCsv = csvToArray(data.value);
+				newCsv.splice(rowIndex, 1);
+				const csvString = newCsv.map(row => row.join(',')).join('\n');
+				data.value = csvString;
+				hideContextMenu();
+			};
+
 			return {
 				dataCsv,
 				numToChars,
@@ -177,14 +246,17 @@
 				width,
 				heigth,
 				active,
+				contextMenu,
 				cellActive,
 				downloadCsv,
 				getCsv,
-
 				addColumn,
 				addRow,
-
-        loadLastCsvData
+				loadLastCsvData,
+				showContextMenu,
+				hideContextMenu,
+				deleteColumn,
+				deleteRow
 			};
 		},
 	};
