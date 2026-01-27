@@ -16,7 +16,7 @@
 						:style="
 							index === active.col
 								? ' background-color: gray;  '
-								: '  background-color: #64FF00; '
+								: '  background-color: #E5FFCF; '
 						"
 						style="position: sticky; top: 0; color: #000"
 						v-for="(col, index) in maxColumn"
@@ -79,12 +79,12 @@
 				numToChars.letters =
 					numToChars.letters || 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
-				if (num > numToChars.letters.length - 1) {
-					let first = num / 26;
-					num = num % 26;
-					return numToChars([Math.floor(first) - 1]) + numToChars.letters[num];
-				} else {
+				if (num < numToChars.letters.length) {
 					return numToChars.letters[num];
+				} else {
+					const first = Math.floor(num / 26) - 1;
+					const second = num % 26;
+					return numToChars(first) + numToChars.letters[second];
 				}
 			};
 			const getMaxColumn = function (arr) {
@@ -144,18 +144,20 @@
 			};
 
 			const addColumn = () => {
-				dataCsv.value.forEach((row) => {
+				const newCsv = csvToArray(data.value);
+				newCsv.forEach((row) => {
 					row.push('');
 				});
-				dataCsv.value[0][maxColumn.value] = 'Nueva columna';
+				const csvString = newCsv.map(row => row.join(',')).join('\n');
+				data.value = csvString;
 			};
 
 			const addRow = () => {
-				const newRow = [];
-				for (let i = 0; i < maxColumn.value; i++) {
-					newRow.push('');
-				}
-				dataCsv.value.push(newRow);
+				const newCsv = csvToArray(data.value);
+				const newRow = new Array(maxColumn.value).fill('');
+				newCsv.push(newRow);
+				const csvString = newCsv.map(row => row.join(',')).join('\n');
+				data.value = csvString;
 			};
 
 			const saveDataToLocalStorage = (data) => {
