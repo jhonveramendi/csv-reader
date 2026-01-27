@@ -1,6 +1,5 @@
 <template>
   <div>
-    <input-csv v-model="data"/>
     <csv-editor :data="data" />
   </div>
 </template>
@@ -8,13 +7,12 @@
 <script>
 import { ref } from 'vue';
 import CsvEditor from "./components/CsvEditor.vue";
-import InputCsv from "./components/InputCsv.vue";
+//import CsvEditor from "./components/ReadLog.vue";
 
 export default {
   name: "App",
   components: {
     CsvEditor,
-    InputCsv
   },
   setup() {
     let data = ref("");
